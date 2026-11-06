@@ -1,0 +1,40 @@
+{% extends "forecast/base.html" %}
+{% block content %}
+<main class="container page pb-5">
+  <div class="d-flex flex-wrap align-items-end justify-content-between gap-3">
+    <div>
+      <h1 class="display-title sm"><span data-i18n="ins_title">Climate</span> <span class="grad" data-i18n="ins_title2">Insights</span></h1>
+      <p class="lead-text mb-0"><span>{{ n_years }}</span> <span data-i18n="ins_sub">years of daily data say about</span> <span class="accent">{{ city }}</span>.</p>
+    </div>
+    <form method="get" class="city-switch">
+      <select name="city" class="form-select glass-input" onchange="this.form.submit()" aria-label="City">
+        {% for c in cities %}<option value="{{ c.slug }}" {% if c.slug == city_slug %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+      </select>
+    </form>
+  </div>
+
+  <div class="row g-3 mt-2">
+    <div class="col-6 col-lg-3"><div class="tile kpi"><i class="bi bi-thermometer-half"></i><div><small data-i18n="k_mean">Average temperature</small><strong>{{ ins.kpis.mean }}°C</strong></div></div></div>
+    <div class="col-6 col-lg-3"><div class="tile kpi"><i class="bi bi-thermometer-sun"></i><div><small data-i18n="k_hot">Hottest day</small><strong>{{ ins.kpis.hottest }}°C</strong><small>{{ ins.kpis.hottest_date }}</small></div></div></div>
+    <div class="col-6 col-lg-3"><div class="tile kpi"><i class="bi bi-thermometer-snow"></i><div><small data-i18n="k_cold">Coldest day</small><strong>{{ ins.kpis.coldest }}°C</strong><small>{{ ins.kpis.coldest_date }}</small></div></div></div>
+    <div class="col-6 col-lg-3"><div class="tile kpi"><i class="bi bi-graph-up-arrow"></i><div><small data-i18n="k_trend">Warming trend</small><strong>{{ ins.kpis.trend_per_decade }}°C / <span data-i18n="decade">decade</span></strong></div></div></div>
+    {% if ins.kpis.rainy_days_per_year is not None %}
+    <div class="col-6 col-lg-3"><div class="tile kpi"><i class="bi bi-cloud-rain-fill"></i><div><small data-i18n="k_rainy">Rainy days / year</small><strong>{{ ins.kpis.rainy_days_per_year }}</strong></div></div></div>
+    <div class="col-6 col-lg-3"><div class="tile kpi"><i class="bi bi-droplet-half"></i><div><small data-i18n="k_wet">Wettest day</small><strong>{{ ins.kpis.wettest }} mm</strong><small>{{ ins.kpis.wettest_date }}</small></div></div></div>
+    {% endif %}
+  </div>
+
+  <div class="row g-4 mt-1">
+    <div class="col-lg-6"><div class="glass panel panel-solid h-100"><h2 class="code-title"><i class="bi bi-calendar3"></i><span data-i18n="c_month">Temperature by month</span></h2><div class="chart-box"><canvas id="monthlyChart"></canvas></div></div></div>
+    <div class="col-lg-6"><div class="glass panel panel-solid h-100"><h2 class="code-title"><i class="bi bi-bar-chart-fill"></i><span data-i18n="c_year">Average temperature per year</span></h2><div class="chart-box"><canvas id="yearlyChart"></canvas></div></div></div>
+    <div class="col-12"><div class="glass panel panel-solid"><h2 class="code-title"><i class="bi bi-activity"></i><span data-i18n="c_recent">Last 365 days vs. the seasonal normal</span></h2><div class="chart-box tall"><canvas id="recentChart"></canvas></div></div></div>
+    {% if ins.rain %}<div class="col-lg-6"><div class="glass panel panel-solid h-100"><h2 class="code-title"><i class="bi bi-cloud-rain"></i><span data-i18n="c_rain">Average rainfall by month (mm)</span></h2><div class="chart-box"><canvas id="rainChart"></canvas></div></div></div>{% endif %}
+    <div class="col-lg-6"><div class="glass panel panel-solid h-100"><h2 class="code-title"><i class="bi bi-grid-3x3-gap-fill"></i><span data-i18n="c_heat">Monthly mean temperature heatmap (°C)</span></h2>
+      <div class="table-responsive"><table class="heat">
+        <thead><tr><th></th>{% for m in ins.months %}<th>{{ m }}</th>{% endfor %}</tr></thead>
+        <tbody>{% for row in ins.heat %}<tr><th>{{ row.year }}</th>{% for c in row.cells %}{% if c %}<td style="background:{{ c.c }}">{{ c.v }}</td>{% else %}<td class="empty"></td>{% endif %}{% endfor %}</tr>{% endfor %}</tbody>
+      </table></div></div></div>
+  </div>
+  {{ ins|json_script:"insights-data" }}
+</main>
+{% endblock %}

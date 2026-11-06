@@ -1,0 +1,43 @@
+{% extends "forecast/base.html" %}
+{% block content %}
+<main class="container page pb-5">
+  <h1 class="display-title sm"><span data-i18n="b_title">Batch</span> <span class="grad" data-i18n="b_title2">Prediction</span></h1>
+  <p class="lead-text" data-i18n="b_sub">Upload a CSV with many days and get a 7-day forecast for every row.</p>
+  <div class="row g-4">
+    <div class="col-lg-5"><div class="glass panel panel-solid h-100">
+      <form method="post" enctype="multipart/form-data" novalidate>
+        {% csrf_token %}
+        <div class="row g-3 mb-3">
+          <div class="col-sm-6">{% include "forecast/_select.html" with field=form.city icon="bi-geo-alt-fill" i18n="f_city" %}</div>
+          <div class="col-sm-6">{% include "forecast/_select.html" with field=form.model icon="bi-cpu-fill" i18n="f_model" %}</div>
+        </div>
+        <label class="form-label" for="{{ form.file.id_for_label }}"><i class="bi bi-file-earmark-spreadsheet label-icon"></i><span data-i18n="b_file">CSV file</span></label>
+        <input type="file" name="file" id="{{ form.file.id_for_label }}" accept=".csv,text/csv" class="form-control glass-input {% if form.file.errors %}is-invalid{% endif %}">
+        {% for e in form.file.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}
+        <p class="muted small mt-2">Columns: <code>date,temperature,humidity,wind_speed,pressure</code> (optional <code>city,model</code>). Max 1000 rows / 1 MB.</p>
+        <div class="d-flex flex-wrap gap-2">
+          <button class="btn btn-predict" type="submit"><i class="bi bi-upload me-2"></i><span data-i18n="b_run">Run predictions</span></button>
+          <a class="btn-outline-glass" href="{% url 'batch_sample' %}"><i class="bi bi-file-earmark-arrow-down me-2"></i><span data-i18n="b_sample">Sample CSV</span></a>
+        </div>
+      </form></div></div>
+    <div class="col-lg-7"><div class="glass panel panel-solid h-100">
+      {% if results %}
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div><strong>{{ total }}</strong> rows · <span class="text-success">{{ ok }} ok</span>{% if failed %} · <span class="text-danger">{{ failed }} with errors</span>{% endif %}</div>
+        <a class="btn-outline-glass" download="predictions.csv" href="data:text/csv;base64,{{ csv_b64 }}"><i class="bi bi-download me-2"></i><span data-i18n="download_csv">Download CSV</span></a>
+      </div>
+      <div class="table-responsive"><table class="table table-glass align-middle mb-0">
+        <thead><tr><th>#</th><th>Date</th><th>Temp</th><th>Tomorrow</th><th>Range</th><th>Day +3</th><th>Day +7</th></tr></thead>
+        <tbody>{% for r in results %}
+          {% if r.status == 'ok' %}<tr><td>{{ r.line }}</td><td>{{ r.date }}</td><td>{{ r.temperature }}</td><td><strong>{{ r.pred_d1 }}°C</strong></td><td class="muted small">{{ r.low_d1 }}–{{ r.high_d1 }}</td><td>{{ r.pred_d3 }}</td><td>{{ r.pred_d7 }}</td></tr>
+          {% else %}<tr class="row-error"><td>{{ r.line }}</td><td colspan="6"><i class="bi bi-x-circle-fill me-1"></i>{{ r.error }}</td></tr>{% endif %}{% endfor %}
+        </tbody></table></div>
+      {% if truncated %}<p class="muted small mt-2 mb-0">Showing the first 100 rows — the downloaded CSV contains all of them.</p>{% endif %}
+      {% else %}
+      <div class="forecast forecast-empty h-100"><i class="bi bi-file-earmark-spreadsheet forecast-icon"></i>
+        <div class="forecast-body"><div class="forecast-tag"><span data-i18n="b_empty">Your results will appear here</span></div></div></div>
+      {% endif %}
+    </div></div>
+  </div>
+</main>
+{% endblock %}

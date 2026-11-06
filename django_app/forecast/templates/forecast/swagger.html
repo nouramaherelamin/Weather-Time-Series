@@ -1,0 +1,12 @@
+{% extends "forecast/base.html" %}
+{% load static %}
+{% block content %}
+<main class="container page pb-5">
+  <h1 class="display-title sm">Swagger <span class="grad">UI</span></h1>
+  <p class="lead-text">Try every endpoint interactively. Raw spec: <a class="accent" href="{% url 'openapi' %}">/api/openapi.json</a></p>
+  <div class="glass panel panel-solid swagger-wrap"><div id="swagger-ui"></div></div>
+</main>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.17.14/swagger-ui.css">
+<script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.17.14/swagger-ui-bundle.js"></script>
+<script>window.addEventListener("load", function () { SwaggerUIBundle({ url: "{% url 'openapi' %}", dom_id: "#swagger-ui", deepLinking: true }); });</script>
+{% endblock %}

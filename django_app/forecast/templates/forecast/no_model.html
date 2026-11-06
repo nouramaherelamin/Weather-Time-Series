@@ -1,0 +1,13 @@
+{% extends "forecast/base.html" %}
+{% block content %}
+<main class="container page pb-5">
+  <div class="glass panel panel-solid text-center mt-5">
+    <i class="bi bi-database-exclamation display-4 text-warning"></i>
+    <h1 class="h3 mt-3">No trained model found</h1>
+    <p class="muted">The app needs the model files created by the training script. From the project folder run:</p>
+    <pre class="code d-inline-block text-start">python task4_data_eda.py
+python train_app_models.py</pre>
+    <p class="muted mt-3 mb-0">Then restart <code>python manage.py runserver</code>.</p>
+  </div>
+</main>
+{% endblock %}

@@ -1,0 +1,15 @@
+# Render.com blueprint: New + > Blueprint > pick this repo. Free plan is enough.
+services:
+  - type: web
+    name: atmos-weather
+    runtime: python
+    plan: free
+    buildCommand: pip install -r django_app/requirements.txt && cd django_app && python manage.py collectstatic --noinput
+    startCommand: cd django_app && gunicorn weather_site.wsgi:application --timeout 60
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.7
+      - key: DJANGO_DEBUG
+        value: "0"
+      - key: DJANGO_SECRET_KEY
+        generateValue: true

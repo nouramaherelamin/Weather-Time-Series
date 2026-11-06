@@ -1,0 +1,134 @@
+{% extends "forecast/base.html" %}
+{% block content %}
+<section class="hero container">
+  <div class="row g-4 align-items-start">
+    <div class="col-lg-8">
+      <h1 class="display-title"><span data-i18n="h_weather">Weather</span> <span class="grad" data-i18n="h_predictor">Predictor</span></h1>
+      <p class="lead-text"><span data-i18n="lead_a">Enter today’s weather readings and get the expected mean temperature for the next 7 days in</span> <span class="accent">{{ city }}</span>.</p>
+      <div class="chips">
+        <div class="chip"><i class="bi bi-bar-chart-fill"></i><span>{{ n_years }} <span data-i18n="chip_years">years of historical data</span></span></div>
+        <div class="chip"><i class="bi bi-cpu-fill"></i><span data-i18n="chip_ml">3 machine learning models</span></div>
+        <div class="chip"><i class="bi bi-calendar-event-fill"></i><span data-i18n="chip_7d">7-day forecast with confidence range</span></div>
+        <div class="chip"><i class="bi bi-geo-alt-fill"></i><span>{{ city }}</span></div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="glass city-card">
+        <div class="d-flex justify-content-between">
+          <div><div class="fw-semibold"><i class="bi bi-geo-alt-fill me-1"></i>{{ city }}</div><small class="muted">{{ coords }}</small></div>
+          <i class="bi bi-sun-fill city-sun"></i>
+        </div>
+        <div class="city-big">{{ best_mae }}<span>°C</span></div>
+        <div class="fs-5" data-i18n="avg_error">Average model error (day 1)</div>
+        <small class="muted"><span data-i18n="trained_thru">Trained through</span> {{ trained_through }} · {{ best_label }}</small>
+      </div>
+    </div>
+  </div>
+</section>
+
+<main class="container pb-5">
+  <div class="row g-4">
+    <div class="col-lg-6">
+      <div class="glass panel h-100">
+        <div class="panel-head"><i class="bi bi-sliders2-vertical"></i>
+          <div><h2 data-i18n="p_conditions">Today’s Weather Conditions</h2><p data-i18n="p_conditions_sub">Enter today’s mean readings, or load the latest real data.</p></div></div>
+        <form method="post" novalidate id="predict-form" data-city-url="{% url 'api_latest' %}">
+          {% csrf_token %}
+          <div class="row g-3 mb-3">
+            <div class="col-sm-6">{% include "forecast/_select.html" with field=form.city icon="bi-geo-alt-fill" i18n="f_city" %}</div>
+            <div class="col-sm-6">{% include "forecast/_select.html" with field=form.model icon="bi-cpu-fill" i18n="f_model" %}</div>
+          </div>
+          <button type="button" class="btn btn-latest w-100 mb-3" id="btn-latest"><i class="bi bi-cloud-download me-2"></i><span data-i18n="btn_latest">Use latest real data</span></button>
+          <div id="latest-msg" class="latest-msg d-none"></div>
+          <div class="row g-3 mb-3">
+            <div class="col-sm-6">{% include "forecast/_field.html" with field=form.temperature icon="bi-thermometer-half" i18n="f_temp" %}</div>
+            <div class="col-sm-6">{% include "forecast/_field.html" with field=form.humidity icon="bi-droplet-fill" i18n="f_hum" %}</div>
+            <div class="col-sm-6">{% include "forecast/_field.html" with field=form.wind_speed icon="bi-wind" i18n="f_wind" %}</div>
+            <div class="col-sm-6">{% include "forecast/_field.html" with field=form.pressure icon="bi-speedometer2" i18n="f_press" %}</div>
+            <div class="col-12">{% include "forecast/_field.html" with field=form.date icon="bi-calendar3" i18n="f_date" %}</div>
+          </div>
+          <button class="btn btn-predict w-100" type="submit"><i class="bi bi-magic me-2"></i><span data-i18n="btn_predict">Predict next 7 days</span><i class="bi bi-chevron-right ms-auto"></i></button>
+        </form>
+      </div>
+    </div>
+
+    <div class="col-lg-6">
+      <div class="glass panel h-100">
+        <div class="panel-head"><i class="bi bi-bar-chart-line-fill"></i>
+          <div><h2 data-i18n="p_forecast">Tomorrow’s Forecast</h2><p data-i18n="p_forecast_sub">Based on the trained machine learning model.</p></div></div>
+        {% if result %}
+        <div class="forecast result-{{ result.css }}">
+          <i class="bi {{ result.icon }} forecast-icon"></i>
+          <div class="forecast-body">
+            <div class="forecast-tag"><strong data-i18n="{{ result.cat_key }}">{{ result.label }}</strong> <span data-i18n="tomorrow_mean">tomorrow (mean)</span></div>
+            <div class="forecast-temp">{{ result.prediction }}°C</div>
+          </div>
+          <div class="range-pill"><span data-i18n="likely_range">Likely range</span> <strong>{{ result.low }}°C – {{ result.high }}°C</strong> (95%)</div>
+        </div>
+        {% else %}
+        <div class="forecast forecast-empty">
+          <i class="bi bi-graph-up-arrow forecast-icon"></i>
+          <div class="forecast-body"><div class="forecast-tag"><span data-i18n="empty_result">Your prediction will appear here</span></div></div>
+        </div>
+        {% endif %}
+        <div class="row g-2 mt-1">
+          <div class="col-sm-4"><div class="tile"><i class="bi bi-cpu-fill"></i><div><small data-i18n="t_model">Model</small><strong>{% if result %}{{ result.model_label }}{% else %}{{ best_label }}{% endif %}</strong></div></div></div>
+          <div class="col-sm-4"><div class="tile"><i class="bi bi-geo-alt-fill"></i><div><small data-i18n="t_city">City</small><strong>{{ city }}</strong></div></div></div>
+          <div class="col-sm-4"><div class="tile"><i class="bi bi-bar-chart-fill"></i><div><small data-i18n="t_mae">MAE (test)</small><strong>{% if result %}{{ result.mae_day1 }}{% else %}{{ best_mae }}{% endif %}°C</strong></div></div></div>
+        </div>
+        {% if result and result.outside_training_range %}
+        <div class="warn mt-3"><i class="bi bi-exclamation-triangle-fill"></i>
+          <span><span data-i18n="warn_a">Some inputs</span> ({{ result.outside_training_range|join:", " }}) <span data-i18n="warn_b">are outside the range the model was trained on, so treat this prediction with caution.</span></span></div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% if result %}
+  <div class="glass panel mt-4">
+    <div class="panel-head"><i class="bi bi-calendar-week"></i>
+      <div><h2 data-i18n="p_week">7-day outlook</h2><p><span data-i18n="p_week_sub">Predicted mean temperature with the 95% range, compared with the seasonal normal.</span></p></div></div>
+    <div class="days-strip">
+      {% for f in result.forecast %}
+      <div class="day-card result-{{ f.css }}">
+        <div class="small">{{ f.date }}</div>
+        <i class="bi {{ f.icon }}"></i>
+        <div class="fs-4 fw-bold">{{ f.prediction }}°</div>
+        <div class="small opacity-75">{{ f.low }}° – {{ f.high }}°</div>
+        <div class="small opacity-75"><span data-i18n="normal">normal</span> {{ f.normal }}°</div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="row g-4 mt-1">
+      <div class="col-lg-8"><div class="chart-box"><canvas id="forecastChart" aria-label="7-day forecast chart"></canvas></div>
+        <div id="chart-note" class="muted small mt-2"></div></div>
+      <div class="col-lg-4">
+        <h3 class="code-title"><i class="bi bi-lightbulb-fill"></i><span data-i18n="why">Why this prediction?</span></h3>
+        <div class="chart-box short"><canvas id="explainChart" aria-label="Effect of each input"></canvas></div>
+        <p class="muted small mt-2 mb-0" data-i18n="why_note">Effect of each input on tomorrow’s forecast compared with average conditions (°C).</p>
+      </div>
+    </div>
+  </div>
+  {{ result.chart|json_script:"chart-data" }}
+  {{ result.explain|json_script:"explain-data" }}
+  {% endif %}
+
+  {% if history %}
+  <div class="glass panel mt-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+      <h2 class="h5 mb-0"><i class="bi bi-clock-history label-icon"></i><span data-i18n="p_history">Recent predictions</span></h2>
+      <div class="d-flex gap-2">
+        <a class="btn-outline-glass" href="{% url 'history_export' %}"><i class="bi bi-download me-2"></i><span data-i18n="download_csv">Download CSV</span></a>
+        <form method="post" action="{% url 'history_clear' %}" class="m-0">{% csrf_token %}<button class="btn-outline-glass" type="submit"><i class="bi bi-trash me-2"></i><span data-i18n="clear">Clear</span></button></form>
+      </div>
+    </div>
+    <div class="table-responsive"><table class="table table-glass align-middle mb-0">
+      <thead><tr><th>Time (UTC)</th><th>City</th><th>Model</th><th>Date</th><th>Temp</th><th>Hum.</th><th>Wind</th><th>Press.</th><th>Tomorrow</th></tr></thead>
+      <tbody>{% for h in history %}
+        <tr><td>{{ h.ts }}</td><td>{{ h.c }}</td><td>{{ h.m }}</td><td>{{ h.d }}</td><td>{{ h.t }}</td><td>{{ h.h }}</td><td>{{ h.w }}</td><td>{{ h.p }}</td>
+            <td><strong>{{ h.y }}°C</strong> <span class="muted small">({{ h.lo }}–{{ h.hi }})</span></td></tr>{% endfor %}
+      </tbody></table></div>
+  </div>
+  {% endif %}
+</main>
+{% endblock %}

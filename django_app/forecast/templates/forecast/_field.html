@@ -1,0 +1,7 @@
+<label for="{{ field.id_for_label }}" class="form-label"><i class="bi {{ icon }} label-icon"></i><span data-i18n="{{ i18n }}">{{ field.label }}</span></label>
+<input type="{% if field.name == 'date' %}date{% else %}number{% endif %}" name="{{ field.html_name }}" id="{{ field.id_for_label }}"
+       class="form-control glass-input {% if field.errors %}is-invalid{% endif %}"
+       value="{{ field.value|default_if_none:'' }}" step="{{ field.field.widget.attrs.step }}"
+       placeholder="{{ field.field.widget.attrs.placeholder }}"
+       {% if field.name != 'date' %}min="{{ field.field.min_value }}" max="{{ field.field.max_value }}"{% endif %}>
+{% for e in field.errors %}<div class="invalid-feedback d-block">{{ e }}</div>{% endfor %}

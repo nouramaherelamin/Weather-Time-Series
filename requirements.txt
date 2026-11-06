@@ -1,0 +1,16 @@
+# Everything needed to run the notebooks (Tasks 4-5), the training script and the Django app locally.
+pandas
+numpy
+requests
+matplotlib
+seaborn
+scipy
+scikit-learn
+statsmodels
+joblib
+Django>=4.2,<6
+whitenoise>=6.6
+gunicorn>=21.2
+# Optional (install one by one; the code skips them automatically if missing):
+#   pmdarima      -> auto_arima comparison in Task 5
+#   tensorflow    -> RNN/LSTM bonus in Task 5

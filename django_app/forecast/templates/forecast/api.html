@@ -1,0 +1,108 @@
+{% extends "forecast/base.html" %}
+{% load static %}
+{% block content %}
+<main class="container page pb-5">
+  <h1 class="display-title sm">Developer <span class="grad">API</span></h1>
+  <p class="lead-text">JSON endpoints for other apps · no API key · 60 requests/minute per IP · <a class="accent" href="{% url 'swagger' %}">open Swagger UI</a></p>
+
+  <!-- ===================== Playground: edit the request, press Send, see the response right here ===================== -->
+  <div class="api-grid" id="playground">
+    <div class="glass api-card panel-solid">
+      <h2><i class="bi bi-terminal-fill"></i>Request <span class="badge badge-get">GET</span><code class="endpoint">/api/predict/</code></h2>
+      <div class="pg-fields">
+        <div><label for="pg-city">city</label>
+          <select id="pg-city" class="form-select glass-input">{% for c in cities %}<option value="{{ c.slug }}">{{ c.name }}</option>{% empty %}<option value="cairo">Cairo, Egypt</option>{% endfor %}</select></div>
+        <div><label for="pg-model">model</label>
+          <select id="pg-model" class="form-select glass-input"><option value="best">best (auto)</option>{% for o in model_options %}<option value="{{ o.key }}">{{ o.label }}</option>{% endfor %}</select></div>
+        <div><label for="pg-temperature">temperature (°C)</label><input id="pg-temperature" class="form-control glass-input" type="number" step="0.1" value="24"></div>
+        <div><label for="pg-humidity">humidity (%)</label><input id="pg-humidity" class="form-control glass-input" type="number" step="1" value="50"></div>
+        <div><label for="pg-wind_speed">wind_speed (km/h)</label><input id="pg-wind_speed" class="form-control glass-input" type="number" step="0.1" value="12"></div>
+        <div><label for="pg-pressure">pressure (hPa)</label><input id="pg-pressure" class="form-control glass-input" type="number" step="0.1" value="1012"></div>
+        <div class="full"><label for="pg-date">date</label><input id="pg-date" class="form-control glass-input" type="date"></div>
+      </div>
+      <button type="button" class="btn btn-predict w-100 mb-3" id="pg-send"><i class="bi bi-send-fill me-2"></i>Send request</button>
+
+      <div class="tabs" role="tablist">
+        <button type="button" class="tab active" data-tab="curl">cURL</button>
+        <button type="button" class="tab" data-tab="python">Python</button>
+        <button type="button" class="tab" data-tab="js">JavaScript</button>
+      </div>
+      <div class="code-wrap"><button type="button" class="copy-btn" data-copy="pg-code">Copy</button><pre class="code" id="pg-code"></pre></div>
+    </div>
+
+    <div class="glass api-card panel-solid">
+      <h2><i class="bi bi-braces"></i>Response</h2>
+      <div class="resp-head"><span class="pill" id="pg-status">Not sent yet</span><span class="pill" id="pg-time">— ms</span></div>
+      <div class="url-line" id="pg-url"></div>
+      <div class="code-wrap"><button type="button" class="copy-btn" data-copy="pg-response">Copy</button>
+        <pre class="code tall" id="pg-response"><span class="c">// Press “Send request” to see the live JSON response here.</span></pre></div>
+    </div>
+  </div>
+
+  <!-- ===================== Reference ===================== -->
+  <div class="glass api-card panel-solid mt-4">
+    <h2><i class="bi bi-sliders"></i>Parameters</h2>
+    <div class="table-responsive"><table class="table table-glass align-middle mb-0">
+      <thead><tr><th>Parameter</th><th>Meaning</th><th>Allowed</th></tr></thead>
+      <tbody>
+        <tr><td><code>temperature</code></td><td>Today’s mean temperature (°C)</td><td>-10 … 55</td></tr>
+        <tr><td><code>humidity</code></td><td>Mean relative humidity (%)</td><td>0 … 100</td></tr>
+        <tr><td><code>wind_speed</code></td><td>Mean wind speed (km/h)</td><td>0 … 150</td></tr>
+        <tr><td><code>pressure</code></td><td>Mean surface pressure (hPa)</td><td>900 … 1100</td></tr>
+        <tr><td><code>date</code></td><td>Date of the readings</td><td>YYYY-MM-DD</td></tr>
+        <tr><td><code>city</code> <span class="muted">optional</span></td><td>City slug</td><td>{% for c in cities %}<code>{{ c.slug }}</code> {% endfor %}</td></tr>
+        <tr><td><code>model</code> <span class="muted">optional</span></td><td>Model to use</td><td><code>best</code> {% for o in model_options %}<code>{{ o.key }}</code> {% endfor %}</td></tr>
+      </tbody></table></div>
+  </div>
+
+  <div class="row g-4 mt-0">
+    <div class="col-lg-6"><div class="glass api-card panel-solid h-100">
+      <h2><i class="bi bi-diagram-3"></i>Response fields</h2>
+      <div class="table-responsive"><table class="table table-glass align-middle mb-0">
+        <tbody>
+          <tr><td><code>prediction</code></td><td>Tomorrow’s mean temperature (°C); <code>low</code>/<code>high</code> = 95% range</td></tr>
+          <tr><td><code>forecast[]</code></td><td>Days +1 … +7: <code>date</code>, <code>prediction</code>, <code>low</code>, <code>high</code>, <code>normal</code> (seasonal average)</td></tr>
+          <tr><td><code>explain[]</code></td><td>Effect of each input on tomorrow’s forecast (°C vs. average conditions)</td></tr>
+          <tr><td><code>outside_training_range[]</code></td><td>Inputs the model has never seen values like — treat the result with caution</td></tr>
+          <tr><td><code>mae_day1</code></td><td>Average error of this model on the hold-out period (°C)</td></tr>
+        </tbody></table></div>
+    </div></div>
+    <div class="col-lg-6"><div class="glass api-card panel-solid h-100">
+      <h2><i class="bi bi-list-ul"></i>All endpoints</h2>
+      <div class="ep-list">
+        <div class="ep"><span class="m get">GET</span><code>/api/predict/</code><span class="d">7-day forecast (also accepts POST form fields)</span></div>
+        <div class="ep"><span class="m get">GET</span><code>/api/latest/?city=cairo</code><span class="d">latest real daily readings from Open-Meteo</span></div>
+        <div class="ep"><span class="m post">POST</span><code>/api/batch/</code><span class="d">CSV upload (field <code>file</code>); add <code>?format=csv</code> for CSV output</span></div>
+        <div class="ep"><span class="m get">GET</span><code>/api/models/</code><span class="d">cities, models and their accuracy</span></div>
+        <div class="ep"><span class="m get">GET</span><code>/api/health/</code><span class="d">health check</span></div>
+      </div>
+    </div></div>
+  </div>
+
+  <div class="glass api-card panel-solid mt-4">
+    <h2><i class="bi bi-exclamation-octagon-fill"></i>Errors</h2>
+    <div class="err-grid">
+      <div><h3 class="code-title"><span class="status bad">400</span> Validation error</h3>
+        <pre class="code">{
+  <span class="k">"errors"</span>: {
+    <span class="k">"humidity"</span>: [{
+      <span class="k">"message"</span>: <span class="s">"Ensure this value is less than or equal to 100.0."</span>
+    }]
+  }
+}</pre></div>
+      <div><h3 class="code-title"><span class="status bad">429</span> Rate limit</h3>
+        <pre class="code">{
+  <span class="k">"error"</span>: <span class="s">"Rate limit exceeded"</span>,
+  <span class="k">"limit_per_minute"</span>: <span class="n">60</span>
+}
+<span class="c">// + Retry-After header (seconds)</span></pre></div>
+      <div><h3 class="code-title"><span class="status bad">502</span> Live data unavailable</h3>
+        <pre class="code">{
+  <span class="k">"error"</span>: <span class="s">"Could not reach the weather provider: ConnectionError"</span>
+}
+<span class="c">// /api/latest/ only</span></pre></div>
+    </div>
+  </div>
+</main>
+{% endblock %}
+{% block scripts %}<script src="{% static 'forecast/api.js' %}"></script>{% endblock %}

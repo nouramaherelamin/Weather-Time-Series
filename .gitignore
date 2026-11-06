@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.venv/
+.ipynb_checkpoints/
+django_app/staticfiles/
+data/raw_chunks/
+data/cities/*/raw/

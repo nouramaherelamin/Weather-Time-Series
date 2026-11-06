@@ -1,0 +1,42 @@
+{% extends "forecast/base.html" %}
+{% block content %}
+<main class="container page pb-5">
+  <h1 class="display-title sm"><span data-i18n="a_title">About</span> <span class="grad">Atmos</span></h1>
+  <p class="lead-text"><span data-i18n="a_sub">A machine learning app that forecasts the next 7 days of mean temperature for</span> {{ city }}.</p>
+  <div class="row g-4">
+    <div class="col-lg-7"><div class="glass panel panel-solid h-100">
+      <h2 class="h5" data-i18n="a_how">How it works</h2>
+      <ul class="about-list">
+        <li><i class="bi bi-cloud-download"></i><span>{{ n_years }} years of hourly weather from the Open-Meteo archive API, cleaned (gaps, duplicates, impossible values, outliers) and aggregated to daily values.</span></li>
+        <li><i class="bi bi-graph-up"></i><span>Time-series EDA: trend, yearly seasonality, decomposition, ACF/PACF and stationarity tests (see the Task 4 &amp; 5 notebooks).</span></li>
+        <li><i class="bi bi-cpu"></i><span>For each of the next 7 days a separate model (Ridge, Gradient Boosting, Random Forest) predicts the mean temperature from today’s temperature, humidity, wind, pressure and the day of the year.</span></li>
+        <li><i class="bi bi-shield-check"></i><span>Validated chronologically on the last 90 days (never shuffled, no leakage). Models are compared against “persistence” and “seasonal average” baselines.</span></li>
+        <li><i class="bi bi-lightbulb"></i><span>The “Why this prediction?” chart replaces each input by its average and shows how much the forecast moves.</span></li>
+      </ul></div></div>
+    <div class="col-lg-5"><div class="glass panel panel-solid h-100">
+      <h2 class="h5" data-i18n="a_quality">Accuracy on the hold-out period (day +1)</h2>
+      <div class="table-responsive"><table class="table table-glass align-middle mb-0">
+        <thead><tr><th>Model</th><th>MAE</th><th>RMSE</th><th>sMAPE</th></tr></thead>
+        <tbody>{% for o in model_options %}<tr><td>{{ o.label }}{% if o.best %} <span class="status ok">best</span>{% endif %}</td><td>{{ o.mae1 }}°C</td><td>{{ o.rmse1 }}°C</td><td>{{ o.smape1 }}%</td></tr>{% endfor %}</tbody>
+      </table></div>
+      <p class="muted small mt-3 mb-0">Trained through {{ trained_through }}. Limitations: one model set per city; inputs outside the training range trigger a caution message; forecasts further out are less certain.</p>
+    </div></div>
+    <div class="col-12"><div class="glass panel panel-solid">
+      <h2 class="code-title"><i class="bi bi-graph-down"></i>Error by forecast horizon (MAE, °C)</h2>
+      <div class="chart-box"><canvas id="horizonChart"></canvas></div>
+      <div class="table-responsive mt-3"><table class="table table-glass align-middle mb-0">
+        <thead><tr><th>Model</th>{% for h in comparison.horizons %}<th>+{{ h }}d</th>{% endfor %}</tr></thead>
+        <tbody>{% for r in rows %}<tr><td>{{ r.label }}</td>{% for v in r.values %}<td>{{ v }}</td>{% endfor %}</tr>{% endfor %}</tbody></table></div>
+    </div></div>
+  </div>
+  <div class="glass panel panel-solid mt-4 author">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div><h2 class="h5 mb-1"><i class="bi bi-person-circle me-2 label-icon"></i><span data-i18n="built_by">Built by</span> {{ author.name }}</h2>
+        <p class="muted mb-0" data-i18n="author_sub">Data analysis, dashboards and machine learning web apps.</p></div>
+      <div class="d-flex gap-2">
+        <a class="btn-outline-glass" href="{{ author.linkedin }}" target="_blank" rel="noopener"><i class="bi bi-linkedin me-2"></i>LinkedIn</a>
+        <a class="btn-outline-glass" href="{{ author.github }}" target="_blank" rel="noopener"><i class="bi bi-github me-2"></i>GitHub</a>
+      </div></div></div>
+  {{ comparison|json_script:"horizon-data" }}
+</main>
+{% endblock %}
