@@ -5,3 +5,5 @@ __pycache__/
 django_app/staticfiles/
 data/raw_chunks/
 data/cities/*/raw/
+.env
+.env.local
