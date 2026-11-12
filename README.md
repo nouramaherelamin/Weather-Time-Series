@@ -14,19 +14,18 @@ Time-series EDA · ARIMA/SARIMA forecasting · 7-day ML forecasts · Django web 
 ## 📑 Table of contents
 1. [Overview](#-overview)
 2. [Features](#-features)
-3. [Screenshots](#-screenshots)
-4. [Architecture](#-architecture)
-5. [Data](#-data)
-6. [Methodology](#-methodology)
-7. [Results](#-results)
-8. [Quick start](#-quick-start)
-9. [REST API](#-rest-api)
-10. [Testing](#-testing)
-11. [Deployment](#-deployment)
-12. [Configuration](#-configuration)
-13. [Project structure](#-project-structure)
-14. [Limitations & future work](#-limitations--future-work)
-15. [Author & credits](#-author--credits)
+3. [Architecture](#-architecture)
+4. [Data](#-data)
+5. [Methodology](#-methodology)
+6. [Results](#-results)
+7. [Quick start](#-quick-start)
+8. [REST API](#-rest-api)
+9. [Testing](#-testing)
+10. [Deployment](#-deployment)
+11. [Configuration](#-configuration)
+12. [Project structure](#-project-structure)
+13. [Limitations & future work](#-limitations--future-work)
+14. [Author & credits](#-author--credits)
 
 ---
 
@@ -70,18 +69,6 @@ This project covers the full life-cycle of a forecasting product, split into thr
 
 **Engineering**
 - **38 automated tests**, GitHub Actions CI, Dockerfile, Vercel & Render configs, `manage.py check_model` command that proves the app reproduces the training predictions.
-
----
-
-## 🖼️ Screenshots
-
-| Home — 7-day forecast | Insights dashboard |
-|---|---|
-| ![Home](docs/screenshots/home.png) | ![Insights](docs/screenshots/insights.png) |
-
-| API playground | Batch predictions |
-|---|---|
-| ![API](docs/screenshots/api.png) | ![Batch](docs/screenshots/batch.png) |
 
 ---
 
