@@ -5,7 +5,9 @@
 **From 10 years of raw weather data to a deployed machine-learning web app.**
 Time-series EDA · ARIMA/SARIMA forecasting · 7-day ML forecasts · Django web app & JSON API
 
-**[🌐 Live demo](https://YOUR-DOMAIN-HERE)** · **[📘 API docs](https://YOUR-DOMAIN-HERE/api/)** · **[🧪 Swagger UI](https://YOUR-DOMAIN-HERE/api/swagger/)**
+**Python · Django · scikit-learn · statsmodels · Chart.js · Docker · Vercel**
+
+**[🌐 Live demo](https://nouramaherelamin-weather-ts.duckdns.org)** · **[📘 API docs](https://nouramaherelamin-weather-ts.duckdns.org/api/)** · **[🧪 Swagger UI](https://nouramaherelamin-weather-ts.duckdns.org/api/swagger/)**
 
 </div>
 
@@ -65,7 +67,7 @@ This project covers the full life-cycle of a forecasting product, split into thr
 - Input validation shared by the web form, API and CSV upload (one source of truth).
 
 **UX**
-- Dark / light theme, **English / Arabic (RTL)**, responsive layout, city-specific background photos with a cross-fade.
+- Dark / light theme, **English / Arabic (RTL)**, responsive layout, and a **city-themed sunset scene** (Cairo skyline & tower, Alexandria fort & Corniche, Aswan temple & felucca) drawn in pure CSS/SVG — it cross-fades when you change city and needs no image files.
 
 **Engineering**
 - **38 automated tests**, GitHub Actions CI, Dockerfile, Vercel & Render configs, `manage.py check_model` command that proves the app reproduces the training predictions.
@@ -214,7 +216,7 @@ docker compose up --build        # http://localhost:8000  (train the models firs
 
 ## 🔌 REST API
 
-Base URL: `https://YOUR-DOMAIN-HERE` · No API key · **60 requests/minute per IP** · Interactive docs at **`/api/`** and **`/api/swagger/`** · Spec at **`/api/openapi.json`**.
+Base URL: `https://nouramaherelamin-weather-ts.duckdns.org` · No API key · **60 requests/minute per IP** · Interactive docs at **`/api/`** and **`/api/swagger/`** · Spec at **`/api/openapi.json`**.
 
 | Method | Endpoint | Description |
 |---|---|---|
@@ -226,7 +228,7 @@ Base URL: `https://YOUR-DOMAIN-HERE` · No API key · **60 requests/minute per I
 
 **Request**
 ```bash
-curl -G "https://YOUR-DOMAIN-HERE/api/predict/" \
+curl -G "https://nouramaherelamin-weather-ts.duckdns.org/api/predict/" \
   --data-urlencode "temperature=24" --data-urlencode "humidity=50" \
   --data-urlencode "wind_speed=12" --data-urlencode "pressure=1012" \
   --data-urlencode "date=2026-04-15" --data-urlencode "city=cairo" --data-urlencode "model=best"
@@ -317,7 +319,7 @@ gunicorn weather_site.wsgi:application
 | `API_RATE_LIMIT` | `60` | API requests per minute per IP |
 | `WEATHER_MODELS_DIR` | `django_app/models` | folder containing the `*.joblib` bundles |
 
-Vercel and Render hostnames are detected automatically. To add a city, append one entry (`slug`, `name`, `lat`, `lon`) to `CITIES` in `config.py`, optionally add `django_app/forecast/static/forecast/<slug>.jpg` as its background, and re-run `train_app_models.py`.
+Vercel and Render hostnames are detected automatically. To add a city, append one entry (`slug`, `name`, `lat`, `lon`) to `CITIES` in `config.py`, and re-run `train_app_models.py` (new cities use the Cairo scene unless you add their own artwork in `base.html` / `style.css`).
 
 ---
 
@@ -345,7 +347,7 @@ Weather-Time-Series/
         ├── openapi.py                              # ┘
         ├── forms.py  views.py  urls.py  ratelimit.py  context.py   # Django glue
         ├── templates/forecast/       # base, index, insights, batch, about, api, swagger
-        ├── static/forecast/          # style.css, app.js, api.js, city photos
+        ├── static/forecast/          # style.css, app.js, api.js
         ├── management/commands/check_model.py
         └── test_logic.py  test_views.py
 ```
@@ -367,8 +369,7 @@ Weather-Time-Series/
 
 **Noura Maher Elamin** — Data analysis · dashboards · machine-learning web apps
 
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-nouramaherelamin-0A66C2?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/nouramaherelamin/)
-[![GitHub](https://img.shields.io/badge/GitHub-nouramaherelamin-181717?logo=github&logoColor=white)](https://github.com/nouramaherelamin)
+[LinkedIn](https://www.linkedin.com/in/nouramaherelamin/) · [GitHub](https://github.com/nouramaherelamin)
 
 Built as part of the **NiCST Machine Learning training series** (Tasks 4 – 6).
 
